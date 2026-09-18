@@ -523,12 +523,28 @@ h1, h2, h3, p { margin: 0; }
 }
 .tile:hover { transform: translateY(-5px); box-shadow: var(--shadow-m); }
 .tile-art {
+  position: relative;
   height: clamp(86px, 10vw, 120px);
   border-radius: var(--r-sm);
+  overflow: hidden;
 }
-.tile-art-1 { background: radial-gradient(70% 70% at 40% 35%, #f0d9cf, #d9b7a6); }
-.tile-art-2 { background: radial-gradient(70% 70% at 45% 35%, #f4a9a0, #c94a42); }
-.tile-art-3 { background: radial-gradient(70% 70% at 40% 35%, #f2f0ee, #cdcac6); }
+.tile-art img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 8px;
+  /* the supplied cut-outs sit on white — multiply drops it into the tinted panel */
+  mix-blend-mode: multiply;
+  transition: transform .45s var(--ease);
+}
+.tile:hover .tile-art img { transform: scale(1.06); }
+/* the heart cut-out ships on light grey — lift it to white so multiply blends cleanly */
+.tile-art-2 img { filter: brightness(1.09) saturate(1.04); }
+.tile-art-1 { background: radial-gradient(75% 75% at 42% 32%, #fdf3ef, #efdcd4); }
+.tile-art-2 { background: radial-gradient(75% 75% at 45% 32%, #fdeeec, #f3cec8); }
+.tile-art-3 { background: radial-gradient(75% 75% at 42% 32%, #f7f5f2, #e2ddd6); }
 .tile-label {
   display: flex;
   align-items: center;
@@ -1005,7 +1021,7 @@ h1, h2, h3, p { margin: 0; }
   .footer-top { justify-content: flex-start; }
   .why-tiles { grid-template-columns: 1fr; }
   .tile { flex-direction: row; align-items: center; }
-  .tile-art { flex: none; width: 80px; height: 66px; }
+  .tile-art { flex: none; width: 92px; height: 78px; }
   .tile-label { flex: 1; font-size: 12px; }
 }
 
