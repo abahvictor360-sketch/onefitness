@@ -27,4 +27,10 @@ Verified from 320px phones through 1920px desktops. Honours `prefers-reduced-mot
 
 ## Deploy
 
-Static output — deployed on Vercel with no build step (`vercel.json` sets long-lived caching for assets).
+Static output — deployed on Vercel with no build step.
+
+`vercel.json` caches `/assets/img/*` as immutable for a year (replace an image by adding a new
+filename, never by overwriting one) while `/assets/css/*` and `/assets/js/*` revalidate on every
+request, so a style or script change reaches returning visitors immediately. The `?v=N` query on
+the CSS and JS links exists to evict copies cached under the old immutable policy — bump it if a
+release ever needs to force a refetch.
