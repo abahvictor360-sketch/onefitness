@@ -66,13 +66,13 @@
   /* ── Meal preference switch ────────────────────────── */
   const meals = {
     "non-vegan": {
-      src: "assets/img/meal-plate.jpg",
+      src: "/assets/img/meal-plate.jpg",
       alt: "Balanced bowl with chicken, rice and vegetables",
       calories: 2091,
       goal: 2200,
     },
     vegan: {
-      src: "assets/img/meal-bowl.jpg",
+      src: "/assets/img/meal-bowl.jpg",
       alt: "Colourful plant-based bowl with fruit, greens and seeds",
       calories: 1840,
       goal: 2000,
@@ -126,9 +126,109 @@
       const valid = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value);
       note.className = "form-note " + (valid ? "ok" : "error");
       note.textContent = valid
-        ? "Thanks — your tailored first week is on the way to " + value + "."
+        ? "Thanks, your tailored first week is on the way to " + value + "."
         : "Please enter a valid email address.";
       if (valid) form.reset();
+    });
+  }
+
+  /* ── Contact form ──────────────────────────────────── */
+  // No backend is wired up yet. Set this to an endpoint (a Vercel function,
+  // Formspree, etc.) and the form will POST to it instead of only confirming
+  // locally.
+  const FORM_ENDPOINT = null;
+
+  const contactForm = $("#contactForm");
+  const contactNote = $("#contactNote");
+
+  if (contactForm && contactNote) {
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+    const rules = {
+      name: (v) => (v.trim().length >= 2 ? "" : "Please enter your name."),
+      cemail: (v) => (emailRe.test(v.trim()) ? "" : "Please enter a valid email address."),
+      topic: (v) => (v ? "" : "Please choose a topic."),
+      message: (v) => (v.trim().length >= 10 ? "" : "Please add a little more detail (10 characters or more)."),
+      consent: (v, el) => (el.checked ? "" : "Please confirm we may reply to you."),
+    };
+
+    function validateField(id) {
+      const el = $("#" + id, contactForm);
+      if (!el) return true;
+      const msg = rules[id](el.value, el);
+      const errEl = $("#err-" + id, contactForm);
+      const field = el.closest(".field");
+
+      if (field) field.classList.toggle("invalid", Boolean(msg));
+      el.setAttribute("aria-invalid", String(Boolean(msg)));
+      if (errEl) {
+        errEl.textContent = msg;
+        errEl.hidden = !msg;
+      }
+      return !msg;
+    }
+
+    Object.keys(rules).forEach((id) => {
+      const el = $("#" + id, contactForm);
+      if (!el) return;
+      // Only nag after a field has been visited once.
+      el.addEventListener("blur", () => validateField(id));
+      el.addEventListener("input", () => {
+        const field = el.closest(".field");
+        if ((field && field.classList.contains("invalid")) || el.getAttribute("aria-invalid") === "true") {
+          validateField(id);
+        }
+      });
+    });
+
+    contactForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const results = Object.keys(rules).map(validateField);
+      if (results.includes(false)) {
+        contactNote.className = "form-note error";
+        contactNote.textContent = "Please fix the highlighted fields and try again.";
+        const firstBad = contactForm.querySelector('[aria-invalid="true"]');
+        if (firstBad) firstBad.focus();
+        return;
+      }
+
+      const submitBtn = $(".form-submit", contactForm);
+      const name = $("#name", contactForm).value.trim().split(" ")[0];
+
+      if (!FORM_ENDPOINT) {
+        contactNote.className = "form-note ok";
+        contactNote.textContent =
+          "Thanks " + name + ", your message is ready to send. This demo has no mail server attached yet, so nothing was delivered. Email hello@onefitness.com in the meantime.";
+        return;
+      }
+
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Sending...";
+      }
+      contactNote.className = "form-note";
+      contactNote.textContent = "Sending your message...";
+
+      try {
+        const res = await fetch(FORM_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify(Object.fromEntries(new FormData(contactForm))),
+        });
+        if (!res.ok) throw new Error("Request failed with " + res.status);
+        contactNote.className = "form-note ok";
+        contactNote.textContent = "Thanks " + name + ", your message is on its way. A coach replies within one working day.";
+        contactForm.reset();
+      } catch (err) {
+        contactNote.className = "form-note error";
+        contactNote.textContent = "Something went wrong sending that. Please email hello@onefitness.com instead.";
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = "Send message";
+        }
+      }
     });
   }
 

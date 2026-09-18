@@ -7,11 +7,24 @@ Built as a zero-build static site: hand-written HTML, CSS and vanilla JS. No bun
 ## Structure
 
 ```
-index.html            # single-page site (hero, how it works, meals, programs, events, FAQ, CTA)
+index.html            # home (hero, how it works, meals, programs, events, FAQ, CTA)
+about.html            # /about  story, values, coaches, method
+contact.html          # /contact  enquiry form, studio details, hours, visiting, FAQ
 assets/css/styles.css # design tokens + all layout/responsive rules
 assets/js/main.js     # nav drawer, scroll reveals, meal switcher, form validation
 assets/img/           # photography
 ```
+
+`cleanUrls` in `vercel.json` serves these at `/about` and `/contact`. Each page carries its own copy
+of the header and footer, since the site has no build step to share partials; edit all three when the
+navigation changes.
+
+## Contact form
+
+The form validates on the client (per-field messages, focus moved to the first problem) but has no
+backend. `FORM_ENDPOINT` at the top of the contact-form block in `assets/js/main.js` is `null`, so a
+valid submission only confirms locally and points the visitor at the mailto link. Set it to a real
+endpoint (Vercel function, Formspree, or similar) and the same handler POSTs the fields as JSON.
 
 ## Run locally
 
